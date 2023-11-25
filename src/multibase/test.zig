@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const multibase = @import("./lib.zig");
+const multibase = @import("multibase");
 
 fn testEncode(comptime base: type, allocator: std.mem.Allocator, data: []const u8, expected: []const u8) !void {
     const actual = try base.baseEncode(allocator, data);

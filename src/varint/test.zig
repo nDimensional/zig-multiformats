@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const varint = @import("./lib.zig");
+const varint = @import("varint");
 
 test "encode and decode" {
     var buf: [varint.MAX_BYTE_LENGTH]u8 = undefined;
