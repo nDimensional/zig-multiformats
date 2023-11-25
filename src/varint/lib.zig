@@ -52,6 +52,10 @@ pub fn decode(buf: []const u8) !DecodeResult {
     var shift: u6 = 0;
     var i: u8 = 0;
     while (i < MAX_BYTE_LENGTH) : (i += 1) {
+        if (i >= buf.len) {
+            return error.EOD;
+        }
+
         val += @as(u64, @intCast(buf[i] & REST)) << shift;
         if (buf[i] & MSB == 0) {
             return .{ .val = val, .len = i + 1 };
@@ -62,16 +66,3 @@ pub fn decode(buf: []const u8) !DecodeResult {
 
     return error.InvalidValue;
 }
-
-// test "encode and decode" {
-//     var buf: [MAX_BYTE_LENGTH]u8 = undefined;
-
-//     var val: u64 = 0;
-//     while (val < MAX_VALUE) : (val += 1) {
-//         const len = encode(&buf, val);
-//         try std.testing.expectEqual(encodingLength(val), len);
-//         const result = try decode(&buf);
-//         try std.testing.expectEqual(encodingLength(val), result.len);
-//         try std.testing.expectEqual(val, result.val);
-//     }
-// }

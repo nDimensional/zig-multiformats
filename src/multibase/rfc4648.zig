@@ -6,7 +6,7 @@ const PAD = '=';
 
 var codes: [256]u8 = undefined;
 
-fn decode(allocator: std.mem.Allocator, string: []const u8, alphabet: []const u8, bits_per_char: u3) ![]u8 {
+fn decodeBytes(allocator: std.mem.Allocator, string: []const u8, alphabet: []const u8, bits_per_char: u3) ![]u8 {
     for (alphabet, 0..) |char, i| {
         codes[@truncate(i)] = char;
     }
@@ -49,19 +49,21 @@ fn decode(allocator: std.mem.Allocator, string: []const u8, alphabet: []const u8
     return out;
 }
 
-fn encode(allocator: std.mem.Allocator, data: []const u8, alphabet: []const u8, bits_per_char: u3) ![]const u8 {
+fn encodeBytes(allocator: std.mem.Allocator, bytes: []const u8, alphabet: []const u8, bits_per_char: u3, prefix: []const u8) ![]const u8 {
     const pad = alphabet[alphabet.len - 1] == PAD;
 
     const mask = (@as(u8, 1) << bits_per_char) - 1;
     var out = std.ArrayList(u8).init(allocator);
     errdefer out.deinit();
 
+    try out.appendSlice(prefix);
+
     var bits: u5 = 0; // Number of bits currently in the buffer
     var buffer: u32 = 0; // Bits waiting to be written out, MSB first
     var i: usize = 0;
-    while (i < data.len) : (i += 1) {
+    while (i < bytes.len) : (i += 1) {
         // Slurp data into the buffer:
-        buffer = (buffer << 8) | data[i];
+        buffer = (buffer << 8) | bytes[i];
         bits += 8;
 
         // Write out as much as we can:
@@ -86,14 +88,26 @@ fn encode(allocator: std.mem.Allocator, data: []const u8, alphabet: []const u8, 
     return try out.toOwnedSlice();
 }
 
-pub fn Base(comptime alphabet: []const u8, comptime bits_per_char: u3) type {
+pub fn Base(comptime code: []const u8, comptime alphabet: []const u8, comptime bits_per_char: u3) type {
     return struct {
-        pub fn baseEncode(allocator: std.mem.Allocator, data: []const u8) ![]const u8 {
-            return try encode(allocator, data, alphabet, bits_per_char);
+        pub fn encode(allocator: std.mem.Allocator, bytes: []const u8) ![]const u8 {
+            return try encodeBytes(allocator, bytes, alphabet, bits_per_char, code);
+        }
+
+        pub fn baseEncode(allocator: std.mem.Allocator, bytes: []const u8) ![]const u8 {
+            return try encodeBytes(allocator, bytes, alphabet, bits_per_char, &.{});
+        }
+
+        pub fn decode(allocator: std.mem.Allocator, string: []const u8) ![]const u8 {
+            if (string.len < code.len or !std.mem.eql(u8, code, string[0..code.len])) {
+                return error.INVALID_MULTIBASE_PREFIX;
+            }
+
+            return try decodeBytes(allocator, string[code.len..], alphabet, bits_per_char);
         }
 
         pub fn baseDecode(allocator: std.mem.Allocator, string: []const u8) !void {
-            return try decode(allocator, string, alphabet, bits_per_char);
+            return try decodeBytes(allocator, string, alphabet, bits_per_char);
         }
     };
 }
