@@ -35,7 +35,7 @@ pub fn Base(comptime code: []const u8, comptime alphabet: []const u8) type {
             var zeroes: usize = 0;
             var length: usize = 0;
             var pbegin: usize = 0;
-            var pend: usize = source.len;
+            const pend: usize = source.len;
 
             while (pbegin != pend and source[pbegin] == 0) {
                 pbegin += 1;
