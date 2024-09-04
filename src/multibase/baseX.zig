@@ -1,4 +1,5 @@
 const std = @import("std");
+const Code = @import("code.zig").Code;
 
 fn getBaseMap(comptime alphabet: []const u8) [256]u8 {
     var base_map: [256]u8 = undefined;
@@ -7,59 +8,91 @@ fn getBaseMap(comptime alphabet: []const u8) [256]u8 {
     return base_map;
 }
 
-pub fn Base(comptime code: []const u8, comptime alphabet: []const u8) type {
+pub fn Base(comptime code: Code, comptime alphabet: []const u8) type {
     const leader = alphabet[0];
+    const alphabet_len: u32 = @intCast(alphabet.len);
 
-    const factor: f64 = @log(@as(f64, alphabet.len)) / @log(@as(f64, 256));
-    const i_factor: f64 = @log(@as(f64, 256)) / @log(@as(f64, alphabet.len));
+    const factor: comptime_float = @log(@as(f64, alphabet.len)) / @log(@as(f64, 256));
+    const i_factor: comptime_float = @log(@as(f64, 256)) / @log(@as(f64, alphabet.len));
 
     const base_map = getBaseMap(alphabet);
 
+    const max_byte_len: comptime_int = 256;
+    const max_buffer_size: comptime_int = @intFromFloat((@as(f64, @floatFromInt(max_byte_len)) * i_factor + 1));
+
     return struct {
         const Self = @This();
+        const prefix: []const u8 = &.{@intFromEnum(code)};
 
-        pub fn encode(allocator: std.mem.Allocator, source: []const u8) ![]const u8 {
-            return try prefixEncode(allocator, source, code);
+        var buffer: [max_buffer_size]u8 = undefined;
+
+        pub fn encode(allocator: std.mem.Allocator, bytes: []const u8) ![]const u8 {
+            if (bytes.len > max_byte_len) {
+                return error.MAX_LENGTH;
+            }
+
+            var out = std.ArrayList(u8).init(allocator);
+            errdefer out.deinit();
+
+            var writer = out.writer();
+            try writer.writeByte(@intFromEnum(code));
+            try writeAll(writer.any(), bytes);
+
+            return try out.toOwnedSlice();
         }
 
-        pub fn baseEncode(allocator: std.mem.Allocator, source: []const u8) ![]const u8 {
-            return try prefixEncode(allocator, source, &.{});
+        pub fn baseEncode(allocator: std.mem.Allocator, bytes: []const u8) ![]const u8 {
+            if (bytes.len > max_byte_len) {
+                return error.MAX_LENGTH;
+            }
+
+            var out = std.ArrayList(u8).init(allocator);
+            errdefer out.deinit();
+
+            var writer = out.writer();
+            try writeAll(writer.any(), bytes);
+
+            return try out.toOwnedSlice();
         }
 
-        fn prefixEncode(allocator: std.mem.Allocator, source: []const u8, prefix: []const u8) ![]const u8 {
-            if (source.len == 0) {
-                return try allocator.alloc(u8, 0);
+        pub inline fn writeAll(writer: std.io.AnyWriter, bytes: []const u8) !void {
+            try writeAllImpl(writer, bytes);
+        }
+
+        fn writeAllImpl(writer: anytype, bytes: []const u8) !void {
+            if (bytes.len == 0) {
+                return;
             }
 
             // Skip & count leading zeroes.
-            var zeroes: usize = 0;
+
             var length: usize = 0;
             var pbegin: usize = 0;
-            const pend: usize = source.len;
+            const pend: usize = bytes.len;
 
-            while (pbegin != pend and source[pbegin] == 0) {
-                pbegin += 1;
-                zeroes += 1;
-            }
+            while (pbegin < pend and bytes[pbegin] == 0) pbegin += 1;
+
+            const zeroes = pbegin;
 
             // Allocate enough space in big-endian base58 representation.
             const size: usize = @intFromFloat((@as(f64, @floatFromInt(pend - pbegin)) * i_factor + 1));
-            const buffer = try allocator.alloc(u8, size);
-            defer allocator.free(buffer);
+            // const buffer = try allocator.alloc(u8, size);
+            // defer allocator.free(buffer);
 
-            for (buffer) |*char| char.* = 0;
+            const b = buffer[0..size];
+            for (b) |*char| char.* = 0;
 
             // Process the bytes.
-            while (pbegin != pend) {
-                var carry: u32 = source[pbegin];
+            while (pbegin < pend) : (pbegin += 1) {
+                var carry: u32 = bytes[pbegin];
 
                 // Apply "buffer = buffer * 256 + ch".
                 var i: usize = 0;
                 var it1 = size - 1;
                 while ((carry != 0 or i < length)) {
-                    carry += (256 * @as(u32, buffer[it1]));
-                    buffer[it1] = @intCast(carry % @as(u32, @intCast(alphabet.len)));
-                    carry = (carry / @as(u32, @intCast(alphabet.len)));
+                    carry += (256 * @as(u32, b[it1]));
+                    b[it1] = @intCast(carry % alphabet_len);
+                    carry = (carry / alphabet_len);
 
                     i += 1;
                     if (it1 > 0) {
@@ -74,7 +107,6 @@ pub fn Base(comptime code: []const u8, comptime alphabet: []const u8) type {
                 }
 
                 length = i;
-                pbegin += 1;
             }
 
             // Skip leading zeroes in base-X result.
@@ -84,57 +116,72 @@ pub fn Base(comptime code: []const u8, comptime alphabet: []const u8) type {
             }
 
             // Translate the result into a string.
-            const str = try allocator.alloc(u8, prefix.len + zeroes + (size - it2));
-            @memcpy(str[0..prefix.len], prefix);
-            for (str[prefix.len..], 0..) |*char, i| {
-                if (i < zeroes) {
-                    char.* = leader;
-                } else if (it2 < buffer.len) {
-                    char.* = alphabet[buffer[it2]];
+            // const str = try allocator.alloc(u8, zeroes + (size - it2));
+            try writer.writeByteNTimes(leader, zeroes);
+
+            for (0..(size - it2)) |_| {
+                if (it2 < b.len) {
+                    try writer.writeByte(alphabet[b[it2]]);
                     it2 += 1;
                 } else {
                     @panic("index out of range");
                 }
             }
-
-            return str;
         }
 
-        pub fn decode(allocator: std.mem.Allocator, source: []const u8) ![]const u8 {
-            if (source.len < code.len or !std.mem.eql(u8, code, source[0..code.len])) {
+        /// Return a Formatter for a []const u8
+        pub fn format(bytes: []const u8) std.fmt.Formatter(formatImpl) {
+            return .{ .data = bytes };
+        }
+
+        fn formatImpl(
+            bytes: []const u8,
+            comptime fmt: []const u8,
+            options: std.fmt.FormatOptions,
+            writer: anytype,
+        ) !void {
+            _ = fmt;
+            _ = options;
+
+            try writeAllImpl(writer, bytes);
+        }
+
+        pub fn decode(allocator: std.mem.Allocator, str: []const u8) ![]const u8 {
+            if (str.len < 1 or str[0] != @intFromEnum(code)) {
                 return error.INVALID_MULTIBASE_PREFIX;
             }
 
-            return try baseDecode(allocator, source[code.len..]);
+            return try baseDecode(allocator, str[@sizeOf(Code)..]);
         }
 
-        pub fn baseDecode(allocator: std.mem.Allocator, source: []const u8) ![]const u8 {
+        pub fn baseDecode(allocator: std.mem.Allocator, str: []const u8) ![]const u8 {
             var psz: usize = 0;
 
             var zeroes: usize = 0;
             var length: usize = 0;
-            while (psz < source.len and source[psz] == leader) {
+            while (psz < str.len and str[psz] == leader) {
                 zeroes += 1;
                 psz += 1;
             }
 
-            if (psz == source.len) {
+            if (psz == str.len) {
                 const bytes = try allocator.alloc(u8, zeroes);
                 for (bytes) |*byte| byte.* = 0;
                 return bytes;
             }
 
             // Allocate enough space in big-endian base256 representation.
-            const size: usize = @intFromFloat(@as(f64, @floatFromInt(source.len - psz)) * factor + 1);
-            const buffer = try allocator.alloc(u8, size);
-            defer allocator.free(buffer);
+            const size: usize = @intFromFloat(@as(f64, @floatFromInt(str.len - psz)) * factor + 1);
+            if (size > max_byte_len) {
+                return error.MAX_LENGTH;
+            }
 
-            for (buffer) |*char| char.* = 0;
+            for (&buffer) |*char| char.* = 0;
 
             // Process the characters.
-            while (psz < source.len) : (psz += 1) {
+            while (psz < str.len) : (psz += 1) {
                 // Decode character
-                var carry: u32 = base_map[source[psz]];
+                var carry: u32 = base_map[str[psz]];
 
                 if (carry == 0xFF) {
                     return error.INVALID_CHARACTER;
@@ -143,9 +190,9 @@ pub fn Base(comptime code: []const u8, comptime alphabet: []const u8) type {
                 var i: usize = 0;
                 var it3: usize = size - 1;
                 while (carry != 0 or i < length) {
-                    carry += @as(u32, @intCast(alphabet.len)) * @as(u32, buffer[it3]);
-                    buffer[it3] = @intCast(carry % 256);
-                    carry = carry / 256;
+                    carry += alphabet_len * @as(u32, buffer[it3]);
+                    buffer[it3] = @truncate(carry % 256);
+                    carry /= 256;
                     i += 1;
                     if (it3 > 0) {
                         it3 -= 1;
