@@ -2,7 +2,7 @@ const std = @import("std");
 const CID = @import("cid").CID;
 const Codec = @import("multicodec").Codec;
 
-test "fjdkslfjdksl" {
+test "CID.parse" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer std.debug.assert(gpa.deinit() == .ok);
 
