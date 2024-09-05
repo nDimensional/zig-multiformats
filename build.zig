@@ -45,6 +45,7 @@ pub fn build(b: *std.Build) void {
 
     const cid_tests = b.addTest(.{ .root_source_file = b.path("src/cid/test.zig") });
     cid_tests.root_module.addImport("cid", cid);
+    cid_tests.root_module.addImport("multicodec", multicodec);
     const run_cid_tests = b.addRunArtifact(cid_tests);
     b.step("test-cid", "Run cid tests").dependOn(&run_cid_tests.step);
 

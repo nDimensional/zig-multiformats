@@ -39,7 +39,7 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8, comptime bits_pe
             return try out.toOwnedSlice();
         }
 
-        pub inline fn writeAll(writer: std.io.AnyWriter, bytes: []const u8) !void {
+        pub fn writeAll(writer: std.io.AnyWriter, bytes: []const u8) !void {
             try writeAllImpl(writer, bytes);
         }
 

@@ -9,6 +9,9 @@ const Digest = multihash.Digest;
 
 const DEFAULT_BASE = multibase.Code.base32;
 
+const max_byte_len = 256;
+threadlocal var buffer: [max_byte_len]u8 = undefined;
+
 pub const CID = struct {
     pub const Version = enum { cidv0, cidv1 };
 
@@ -151,7 +154,14 @@ pub const CID = struct {
     fn formatBaseImpl(data: struct { cid: CID, base: multibase.Code }, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
         _ = fmt;
         _ = options;
-        try data.cid.write(writer);
+
+        if (data.cid.version == .cidv0 and data.base != multibase.Code.base58btc) {
+            return error.INVALID_MULTIBASE;
+        }
+
+        var stream = std.io.fixedBufferStream(&buffer);
+        try data.cid.write(stream.writer().any());
+        try multibase.writeAll(writer, buffer[0..stream.pos], data.base, data.cid.version == .cidv1);
     }
 
     /// Return a human-readable string Formatter for a CID

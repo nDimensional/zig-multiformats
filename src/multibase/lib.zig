@@ -45,7 +45,7 @@ pub const Base = struct {
     code: Code,
     name: []const u8,
 
-    // writeAll: *const fn (writer: std.io.AnyWriter, bytes: []const u8) anyerror!void,
+    writeAll: *const fn (writer: std.io.AnyWriter, bytes: []const u8) anyerror!void,
 
     encode: *const fn (allocator: std.mem.Allocator, bytes: []const u8) anyerror![]const u8,
     baseEncode: *const fn (allocator: std.mem.Allocator, bytes: []const u8) anyerror![]const u8,
@@ -57,6 +57,7 @@ pub const Base = struct {
         return .{
             .code = code,
             .name = @tagName(code),
+            .writeAll = &impl.writeAll,
             .encode = &impl.encode,
             .baseEncode = &impl.baseEncode,
             .decode = &impl.decode,
@@ -112,4 +113,15 @@ pub fn encode(allocator: std.mem.Allocator, bytes: []const u8, code: Code) ![]co
     }
 
     @panic("invalid multibase code");
+}
+
+pub fn writeAll(writer: std.io.AnyWriter, bytes: []const u8, code: Code, prefix: bool) !void {
+    for (bases) |base| {
+        if (base.code == code) {
+            if (prefix) {
+                try writer.writeByte(@intFromEnum(code));
+            }
+            return try base.writeAll(writer, bytes);
+        }
+    }
 }

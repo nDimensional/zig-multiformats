@@ -24,7 +24,7 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8) type {
         const Self = @This();
         const prefix: []const u8 = &.{@intFromEnum(code)};
 
-        var buffer: [max_buffer_size]u8 = undefined;
+        threadlocal var buffer: [max_buffer_size]u8 = undefined;
 
         pub fn encode(allocator: std.mem.Allocator, bytes: []const u8) ![]const u8 {
             if (bytes.len > max_byte_len) {
@@ -55,7 +55,7 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8) type {
             return try out.toOwnedSlice();
         }
 
-        pub inline fn writeAll(writer: std.io.AnyWriter, bytes: []const u8) !void {
+        pub fn writeAll(writer: std.io.AnyWriter, bytes: []const u8) !void {
             try writeAllImpl(writer, bytes);
         }
 

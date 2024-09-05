@@ -36,23 +36,6 @@ pub const Digest = struct {
         return .{ .code = code, .hash = hash };
     }
 
-    // pub fn read(allocator: std.mem.Allocator, reader: std.io.AnyReader) !Digest {
-    //     const code = try Codec.read(reader);
-    //     const size = try varint.read(reader);
-
-    //     const bytes = try allocator.alloc(u8, code.encodingLength() + varint.encodingLength(size) + size);
-
-    //     var i: usize = 0;
-    //     i += Codec.encode(bytes[i..], code);
-    //     i += varint.encode(bytes[i..], size);
-
-    //     // const hash = try allocator.alloc(u8, size);
-    //     // errdefer allocator.free(hash);
-
-    //     try reader.readNoEof(bytes[i..]);
-    //     return .{ .code = code, .hash = hash };
-    // }
-
     pub fn deinit(self: Digest, allocator: std.mem.Allocator) void {
         allocator.free(self.hash);
     }
