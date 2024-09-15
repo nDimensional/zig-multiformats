@@ -18,6 +18,16 @@ test "CID.parse" {
     }
 
     {
+        const a = try CID.parse(allocator, "zb2rhe5P4gXftAwvA4eXQ5HJwsER2owDyS9sKaQRRVQPn93bA");
+        defer a.deinit(allocator);
+
+        const b = try CID.parse(allocator, "bafkreidon73zkcrwdb5iafqtijxildoonbwnpv7dyd6ef3qdgads2jc4su");
+        defer b.deinit(allocator);
+
+        try std.testing.expect(a.eql(b));
+    }
+
+    {
         const cid = try CID.parse(allocator, "QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn");
         defer cid.deinit(allocator);
 

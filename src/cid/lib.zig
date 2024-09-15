@@ -88,7 +88,6 @@ pub const CID = struct {
 
     pub fn deinit(self: CID, allocator: std.mem.Allocator) void {
         self.digest.deinit(allocator);
-        // allocator.free(self.bytes);
     }
 
     pub fn eql(self: CID, other: CID) bool {
