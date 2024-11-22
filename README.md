@@ -87,14 +87,14 @@ pub const Base = struct {
     pub fn baseDecode(self: Base, allocator: std.mem.Allocator, str: []const u8) ![]const u8
 };
 
-// Base-X family
+// Base-X family - these are limited to encoding 256 bytes or less
 pub const base10: Base;
 pub const base36: Base;
 pub const base36upper: Base;
 pub const base58btc: Base;
 pub const base58flickr: Base;
 
-// RFC 4648 family
+// RFC 4648 family - these are suitable for streaming / arbitrarily long encodings
 pub const base2: Base;
 pub const base8: Base;
 pub const base16: Base;
