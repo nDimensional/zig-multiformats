@@ -128,7 +128,7 @@ pub fn encode(allocator: std.mem.Allocator, bytes: []const u8, code: Code) ![]co
 }
 
 pub fn writeAll(writer: std.io.AnyWriter, bytes: []const u8, code: Code, prefix: bool) !void {
-    for (bases) |base| {
+    inline for (bases) |base| {
         if (base.code == code) {
             if (prefix) {
                 try writer.writeByte(@intFromEnum(code));
