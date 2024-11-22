@@ -62,6 +62,7 @@ pub const CID = struct {
     }
 
     pub fn decode(allocator: std.mem.Allocator, bytes: []const u8) !CID {
+        if (bytes.len < 2) return error.INVALID_CID;
         if (bytes.len == 34 and bytes[0] == 0x12 and bytes[1] == 0x20) {
             return CID.decodeV0(allocator, bytes);
         } else {
@@ -75,7 +76,7 @@ pub const CID = struct {
     }
 
     fn decodeV1(allocator: std.mem.Allocator, bytes: []const u8) !CID {
-        if (bytes[0] != 1) {
+        if (bytes.len == 0 or bytes[0] != 1) {
             return error.INVALID_CID;
         }
 
@@ -90,9 +91,27 @@ pub const CID = struct {
         self.digest.deinit(allocator);
     }
 
+    pub fn copy(self: CID, allocator: std.mem.Allocator) !CID {
+        const digest = try self.digest.copy(allocator);
+        return .{ .version = self.version, .codec = self.codec, .digest = digest };
+    }
+
     pub fn eql(self: CID, other: CID) bool {
         return self.version == other.version and self.codec == other.codec and
             self.digest.eql(other.digest);
+    }
+
+    pub fn expectEqual(actual: CID, expected: CID) !void {
+        try std.testing.expectEqual(actual.version, expected.version);
+        try std.testing.expectEqual(actual.codec, expected.codec);
+        try actual.digest.expectEqual(expected.digest);
+    }
+
+    pub fn encodingLength(self: CID) usize {
+        return switch (self.version) {
+            .cidv0 => self.digest.encodingLength(),
+            .cidv1 => Codec.encodingLength(.cidv1) + Codec.encodingLength(self.codec) + self.digest.encodingLength(),
+        };
     }
 
     pub fn write(self: CID, writer: std.io.AnyWriter) !void {
@@ -101,8 +120,8 @@ pub const CID = struct {
                 try self.digest.write(writer);
             },
             .cidv1 => {
-                try Codec.write(writer, .cidv1);
-                try Codec.write(writer, self.codec);
+                try Codec.cidv1.write(writer);
+                try self.codec.write(writer);
                 try self.digest.write(writer);
             },
         }
