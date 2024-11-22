@@ -25,9 +25,9 @@ pub const CID = struct {
             defer allocator.free(bytes);
             return CID.decodeV0(allocator, bytes);
         } else {
-            const bytes = try multibase.decode(allocator, str, null);
-            defer allocator.free(bytes);
-            return try CID.decodeV1(allocator, bytes);
+            const result = try multibase.decode(allocator, str);
+            defer allocator.free(result.data);
+            return try CID.decodeV1(allocator, result.data);
         }
     }
 

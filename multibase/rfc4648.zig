@@ -18,6 +18,10 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8, comptime bits_pe
         const prefix: []const u8 = &.{@intFromEnum(code)};
         const codes = getBaseMap(alphabet);
 
+        pub inline fn getCode() Code {
+            return code;
+        }
+
         pub fn encode(allocator: std.mem.Allocator, bytes: []const u8) ![]const u8 {
             var out = std.ArrayList(u8).init(allocator);
             errdefer out.deinit();

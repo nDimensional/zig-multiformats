@@ -26,6 +26,10 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8) type {
 
         threadlocal var buffer: [max_buffer_size]u8 = undefined;
 
+        pub inline fn getCode() Code {
+            return code;
+        }
+
         pub fn encode(allocator: std.mem.Allocator, bytes: []const u8) ![]const u8 {
             if (bytes.len > max_byte_len) {
                 return error.MAX_LENGTH;

@@ -2,13 +2,7 @@ const std = @import("std");
 
 const multibase = @import("multibase");
 
-fn testEncode(
-    base: anytype,
-    // comptime encode: *const fn (allocator: std.mem.Allocator, bytes: []const u8) anyerror![]const u8,
-    allocator: std.mem.Allocator,
-    bytes: []const u8,
-    str: []const u8,
-) !void {
+fn testEncode(base: multibase.Base, allocator: std.mem.Allocator, bytes: []const u8, str: []const u8) !void {
     {
         const encoded_str = try base.baseEncode(allocator, bytes);
         defer allocator.free(encoded_str);
@@ -140,4 +134,66 @@ test "base58.baseDecode" {
         try std.fmt.hexToBytes(buffer, "3c5cb2605094b95ab80dbdc8d435e4e9719bb11f"),
         try multibase.base58btc.baseDecode(allocator, "qmwYyekSMj6VHfyhXmPtJdCiYZk"),
     );
+}
+
+fn testGeneric(allocator: std.mem.Allocator, code: multibase.Code, bytes: []const u8, str: []const u8) !void {
+    {
+        // multibase.encode
+        const actual = try multibase.encode(allocator, bytes, code);
+        defer allocator.free(actual);
+        try std.testing.expectEqualSlices(u8, str, actual);
+    }
+
+    {
+        // multibase.decode
+        const result = try multibase.decode(allocator, str);
+        defer allocator.free(result.data);
+        try std.testing.expectEqual(result.code, code);
+        try std.testing.expectEqualSlices(u8, bytes, result.data);
+    }
+}
+
+test "generic encode/decode" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer std.debug.assert(gpa.deinit() == .ok);
+    const allocator = gpa.allocator();
+
+    const buffer = try allocator.alloc(u8, 32);
+    defer allocator.free(buffer);
+
+    _ = try std.fmt.hexToBytes(buffer, "e84b4b0c6a274b85f5b332101b0d65b08b006d122314efdef34c9d4f8a5091b0");
+
+    try testGeneric(allocator, .base2, buffer,
+        \\011101000010010110100101100001100011010100010011
+        ++ \\101001011100001011111010110110011001100100001000
+        ++ \\000011011000011010110010110110000100010110000000
+        ++ \\001101101000100100010001100010100111011111101111
+        ++ \\011110011010011001001110101001111100010100101000
+        ++ \\01001000110110000
+    );
+
+    try testGeneric(allocator, .base8, buffer,
+        \\772045513030650472270276554631020066065455410540033211043051677367464623523705120443300
+    );
+
+    try testGeneric(allocator, .base16, buffer, "fe84b4b0c6a274b85f5b332101b0d65b08b006d122314efdef34c9d4f8a5091b0");
+    try testGeneric(allocator, .base16upper, buffer, "FE84B4B0C6A274B85F5B332101B0D65B08B006D122314EFDEF34C9D4F8A5091B0");
+
+    try testGeneric(allocator, .base32, buffer, "b5bfuwddke5fyl5ntgiibwdlfwcfqa3isemko7xxtjsou7csqsgya");
+    try testGeneric(allocator, .base32upper, buffer, "B5BFUWDDKE5FYL5NTGIIBWDLFWCFQA3ISEMKO7XXTJSOU7CSQSGYA");
+    try testGeneric(allocator, .base32pad, buffer, "c5bfuwddke5fyl5ntgiibwdlfwcfqa3isemko7xxtjsou7csqsgya====");
+    try testGeneric(allocator, .base32padupper, buffer, "C5BFUWDDKE5FYL5NTGIIBWDLFWCFQA3ISEMKO7XXTJSOU7CSQSGYA====");
+    try testGeneric(allocator, .base32hex, buffer, "vt15km33a4t5obtdj6881m3b5m25g0r8i4caevnnj9iekv2igi6o0");
+    try testGeneric(allocator, .base32hexupper, buffer, "VT15KM33A4T5OBTDJ6881M3B5M25G0R8I4CAEVNNJ9IEKV2IGI6O0");
+    try testGeneric(allocator, .base32hexpad, buffer, "tt15km33a4t5obtdj6881m3b5m25g0r8i4caevnnj9iekv2igi6o0====");
+    try testGeneric(allocator, .base32hexpadupper, buffer, "TT15KM33A4T5OBTDJ6881M3B5M25G0R8I4CAEVNNJ9IEKV2IGI6O0====");
+    try testGeneric(allocator, .base32z, buffer, "h7bfwsddkr7fam7pugeebsdmfsnfoy5e1rckq9zzuj1qw9n1o1gay");
+
+
+    try testGeneric(allocator, .base10, buffer, "9105069612366850818172955027443779663331307974886341564945589147424096926077360");
+    try testGeneric(allocator, .base36, buffer, "k5sffbvicytc52rk1yfuk3up9pdt3ivvj7u9zbstm6h9wywwvxs");
+    try testGeneric(allocator, .base36upper, buffer, "K5SFFBVICYTC52RK1YFUK3UP9PDT3IVVJ7U9ZBSTM6H9WYWWVXS");
+
+    try testGeneric(allocator, .base58btc, buffer, "zGdnBBVHLm9D985m4VgvM5oGxdfRyZxMEnX4hFrDPgrGo");
+    try testGeneric(allocator, .base58flickr, buffer, "ZgCMbbuhkL9d985L4uFVm5NgXCEqYyXmeMw4GfRdoFRgN");
 }
