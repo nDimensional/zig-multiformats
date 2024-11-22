@@ -50,6 +50,11 @@ pub fn build(b: *std.Build) void {
     const run_multibase_tests = b.addRunArtifact(multibase_tests);
     b.step("test-multibase", "Run multibase tests").dependOn(&run_multibase_tests.step);
 
+    const multihash_tests = b.addTest(.{ .root_source_file = b.path("src/multihash/test.zig") });
+    multihash_tests.root_module.addImport("multihash", multihash);
+    const run_multihash_tests = b.addRunArtifact(multihash_tests);
+    b.step("test-multihash", "Run multihash tests").dependOn(&run_multihash_tests.step);
+
     const cid_tests = b.addTest(.{ .root_source_file = b.path("src/cid/test.zig") });
     cid_tests.root_module.addImport("cid", cid);
     cid_tests.root_module.addImport("multicodec", multicodec);
@@ -59,5 +64,6 @@ pub fn build(b: *std.Build) void {
     const tests = b.step("test", "Run unit tests");
     tests.dependOn(&run_varint_tests.step);
     tests.dependOn(&run_multibase_tests.step);
+    tests.dependOn(&run_multihash_tests.step);
     tests.dependOn(&run_cid_tests.step);
 }
