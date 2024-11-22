@@ -19,6 +19,7 @@ pub const CID = struct {
     codec: Codec,
     digest: Digest,
 
+    /// parse a CID from multibase-encoded string
     pub fn parse(allocator: std.mem.Allocator, str: []const u8) !CID {
         if (str.len == 46 and str[0] == 'Q' and str[1] == 'm') {
             const bytes = try multibase.base58btc.baseDecode(allocator, str);
@@ -31,6 +32,7 @@ pub const CID = struct {
         }
     }
 
+    /// read a binary CID from a reader
     pub fn read(allocator: std.mem.Allocator, reader: std.io.AnyReader) !CID {
         const head = try Codec.read(reader);
 

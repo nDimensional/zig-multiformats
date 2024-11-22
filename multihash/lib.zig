@@ -9,6 +9,7 @@ pub const Digest = struct {
     code: Codec,
     hash: []const u8,
 
+    /// decode a binary multihash from bytes
     pub fn decode(allocator: std.mem.Allocator, bytes: []const u8) !Digest {
         var code_len: usize = 0;
         const code = try Codec.decode(bytes, &code_len);
@@ -25,6 +26,7 @@ pub const Digest = struct {
         return .{ .code = code, .hash = hash };
     }
 
+    /// read a binary multihash from a reader
     pub fn read(allocator: std.mem.Allocator, reader: std.io.AnyReader) !Digest {
         const code = try Codec.read(reader);
         const size = try varint.read(reader);
@@ -77,7 +79,7 @@ pub const Digest = struct {
         try writer.writeAll(self.hash);
     }
 
-    /// Format a human-readable string for a Digest
+    /// Format a human-readable {code}-{len}-{hex} string for a Digest
     pub fn format(self: Digest, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
         _ = fmt;
         _ = options;
