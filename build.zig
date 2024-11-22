@@ -1,16 +1,23 @@
 const std = @import("std");
-// const FileSource = std.build.FileSource;
-// const LazyPath = std.build.LazyPath;
 
 pub fn build(b: *std.Build) void {
 
     // Modules
 
-    const varint = b.addModule("varint", .{ .root_source_file = b.path("src/varint/lib.zig") });
-    const multibase = b.addModule("multibase", .{ .root_source_file = b.path("src/multibase/lib.zig") });
-    const multicodec = b.addModule("multicodec", .{ .root_source_file = b.path("src/multicodec/lib.zig"), .imports = &.{
-        .{ .name = "varint", .module = varint },
-    } });
+    const varint = b.addModule("varint", .{
+        .root_source_file = b.path("src/varint/lib.zig"),
+    });
+
+    const multibase = b.addModule("multibase", .{
+        .root_source_file = b.path("src/multibase/lib.zig"),
+    });
+
+    const multicodec = b.addModule("multicodec", .{
+        .root_source_file = b.path("src/multicodec/lib.zig"),
+        .imports = &.{
+            .{ .name = "varint", .module = varint },
+        },
+    });
 
     const multihash = b.addModule("multihash", .{
         .root_source_file = b.path("src/multihash/lib.zig"),
@@ -50,7 +57,7 @@ pub fn build(b: *std.Build) void {
     b.step("test-cid", "Run cid tests").dependOn(&run_cid_tests.step);
 
     const tests = b.step("test", "Run unit tests");
-    tests.dependOn(&run_multibase_tests.step);
     tests.dependOn(&run_varint_tests.step);
+    tests.dependOn(&run_multibase_tests.step);
     tests.dependOn(&run_cid_tests.step);
 }
