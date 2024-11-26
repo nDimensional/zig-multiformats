@@ -165,11 +165,16 @@ test "generic encode/decode" {
 
     try testGeneric(allocator, .base2, buffer,
         \\011101000010010110100101100001100011010100010011
-        ++ \\101001011100001011111010110110011001100100001000
-        ++ \\000011011000011010110010110110000100010110000000
-        ++ \\001101101000100100010001100010100111011111101111
-        ++ \\011110011010011001001110101001111100010100101000
-        ++ \\01001000110110000
+    ++ 
+        \\101001011100001011111010110110011001100100001000
+    ++ 
+        \\000011011000011010110010110110000100010110000000
+    ++ 
+        \\001101101000100100010001100010100111011111101111
+    ++ 
+        \\011110011010011001001110101001111100010100101000
+    ++ 
+        \\01001000110110000
     );
 
     try testGeneric(allocator, .base8, buffer,
@@ -188,7 +193,6 @@ test "generic encode/decode" {
     try testGeneric(allocator, .base32hexpad, buffer, "tt15km33a4t5obtdj6881m3b5m25g0r8i4caevnnj9iekv2igi6o0====");
     try testGeneric(allocator, .base32hexpadupper, buffer, "TT15KM33A4T5OBTDJ6881M3B5M25G0R8I4CAEVNNJ9IEKV2IGI6O0====");
     try testGeneric(allocator, .base32z, buffer, "h7bfwsddkr7fam7pugeebsdmfsnfoy5e1rckq9zzuj1qw9n1o1gay");
-
 
     try testGeneric(allocator, .base10, buffer, "9105069612366850818172955027443779663331307974886341564945589147424096926077360");
     try testGeneric(allocator, .base36, buffer, "k5sffbvicytc52rk1yfuk3up9pdt3ivvj7u9zbstm6h9wywwvxs");
