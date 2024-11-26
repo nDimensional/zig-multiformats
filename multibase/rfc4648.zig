@@ -116,7 +116,7 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8, comptime bits_pe
 
         fn decodeBytes(allocator: std.mem.Allocator, str: []const u8) ![]u8 {
             var end = str.len;
-            while (str[end - 1] == PAD) end -= 1;
+            while (end > 0 and str[end - 1] == PAD) end -= 1;
 
             const out = try allocator.alloc(u8, end * bits_per_char / 8);
             errdefer allocator.free(out);
