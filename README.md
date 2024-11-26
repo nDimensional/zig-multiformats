@@ -41,12 +41,7 @@ pub fn build(b: *std.Build) !void {
     const multihash = multiformats.module("multihash");
     const cid = multiformats.module("cid");
 
-    // add the modules you want to use to your exe/lib
-    my_exe.root_module.addImport("varint", varint);
-    my_exe.root_module.addImport("multicodec", multicodec);
-    my_exe.root_module.addImport("multibase", multibase);
-    my_exe.root_module.addImport("multihash", multihash);
-    my_exe.root_module.addImport("cid", cid);
+    // ... add as imports to exe or lib
 }
 ```
 
