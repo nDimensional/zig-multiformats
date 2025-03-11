@@ -107,7 +107,7 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8, comptime bits_pe
                 return error.INVALID_MULTIBASE_PREFIX;
             }
 
-            return try decodeBytes(allocator, str[@sizeOf(Code)..]);
+            return try decodeBytes(allocator, str[1..]);
         }
 
         pub fn baseDecode(allocator: std.mem.Allocator, str: []const u8) ![]const u8 {

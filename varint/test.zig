@@ -34,7 +34,7 @@ test "encode and decode" {
     try roundTripValue(varint.MAX_VALUE - 1);
     // try roundTripValue(varint.MAX_VALUE);
 
-    var prng = std.rand.DefaultPrng.init(0x0000000000000000);
+    var prng = std.Random.DefaultPrng.init(0x0000000000000000);
     var random = prng.random();
 
     const n = 10000;
