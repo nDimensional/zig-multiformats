@@ -17,7 +17,7 @@ Zig modules for [unsigned varints](https://github.com/multiformats/unsigned-vari
 Add to `build.zig.zon`:
 
 ```
-zig fetch --save=sqlite \
+zig fetch --save=multiformats \
   https://github.com/nDimensional/zig-multiformats/archive/refs/tags/v0.3.0.tar.gz
 ```
 
