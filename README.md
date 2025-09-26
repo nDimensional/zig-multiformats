@@ -16,16 +16,9 @@ Zig modules for [unsigned varints](https://github.com/multiformats/unsigned-vari
 
 Add to `build.zig.zon`:
 
-```zig
-.{
-    // ...
-    .dependencies = .{
-        .multiformats = .{
-            .url = "https://github.com/nDimensional/zig-multiformats/archive/refs/tags/v0.1.0.tar.gz",
-            // .hash = "...",
-        },
-    }
-}
+```
+zig fetch --save=sqlite \
+  https://github.com/nDimensional/zig-multiformats/archive/refs/tags/v0.3.0.tar.gz
 ```
 
 Then in `build.zig`:
