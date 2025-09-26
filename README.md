@@ -51,8 +51,8 @@ pub fn encodingLength(val: u64) usize
 pub fn decode(buf: []const u8, len: ?*usize) !usize
 pub fn encode(buf: []u8, val: u64) usize
 
-pub fn read(reader: std.io.AnyReader) !u64
-pub fn write(writer: std.io.AnyWriter, val: u64) !void
+pub fn read(reader: *std.io.Reader) !u64
+pub fn write(writer: *std.io.Writer, val: u64) !void
 ```
 
 The `varint` module has `read`/`write` for usage with streams, and `encode`/`decode` for usage with slices. Trying to `encode` to a buffer that is too small will panic; always check that it has sufficient size using `encodingLength(val)` first.
@@ -67,7 +67,7 @@ pub const Base = struct {
     name: []const u8,
     impl: type,
 
-    pub fn writeAll(self: Base, writer: std.io.AnyWriter, bytes: []const u8) !void
+    pub fn writeAll(self: Base, writer: *std.io.Writer, bytes: []const u8) !void
 
     pub fn encode(self: Base, allocator: std.mem.Allocator, bytes: []const u8) ![]const u8
     pub fn baseEncode(self: Base, allocator: std.mem.Allocator, bytes: []const u8) ![]const u8
@@ -165,7 +165,7 @@ pub const Digest = struct {
     pub fn decode(allocator: std.mem.Allocator, bytes: []const u8) !Digest;
 
     /// read a binary multihash from a reader
-    pub fn read(allocator: std.mem.Allocator, reader: std.io.AnyReader) !Digest;
+    pub fn read(allocator: std.mem.Allocator, reader: *std.io.Reader) !Digest;
     pub fn deinit(self: Digest, allocator: std.mem.Allocator) void;
 
     pub fn copy(self: Digest, allocator: std.mem.Allocator) !Digest;
@@ -173,7 +173,7 @@ pub const Digest = struct {
     pub fn expectEqual(actual: Digest, expected: Digest) !void;
     pub fn encodingLength(self: Digest) usize;
     pub fn encode(self: Digest, allocator: std.mem.Allocator) ![]const u8;
-    pub fn write(self: Digest, writer: std.io.AnyWriter) !void;
+    pub fn write(self: Digest, writer: *std.io.Writer) !void;
 
     /// Format a human-readable {code}-{len}-{hex} string for a Digest
     pub fn format(self: Digest, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void;
@@ -194,7 +194,7 @@ pub const CID = struct {
     pub fn parse(allocator: std.mem.Allocator, str: []const u8) !CID;
 
     /// read a binary CID from a reader
-    pub fn read(allocator: std.mem.Allocator, reader: std.io.AnyReader) !CID;
+    pub fn read(allocator: std.mem.Allocator, reader: *std.io.Reader) !CID;
 
     /// decode a binary CID from bytes
     pub fn decode(allocator: std.mem.Allocator, bytes: []const u8) !CID;
@@ -205,7 +205,7 @@ pub const CID = struct {
     pub fn eql(self: CID, other: CID) bool;
     pub fn expectEqual(actual: CID, expected: CID) !void;
     pub fn encodingLength(self: CID) usize;
-    pub fn write(self: CID, writer: std.io.AnyWriter) !void;
+    pub fn write(self: CID, writer: *std.io.Writer) !void;
     pub fn encode(self: CID, allocator: std.mem.Allocator) ![]const u8;
 
     /// Return a multibase Formatter for a CID

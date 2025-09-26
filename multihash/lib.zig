@@ -36,7 +36,7 @@ pub const Digest = struct {
         const hash = try allocator.alloc(u8, size);
         errdefer allocator.free(hash);
 
-        try reader.readNoEof(hash);
+        try reader.readSliceAll(hash);
         return .{ .code = code, .hash = hash };
     }
 

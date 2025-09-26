@@ -33,7 +33,7 @@ pub const CID = struct {
     }
 
     /// read a binary CID from a reader
-    pub fn read(allocator: std.mem.Allocator, reader: std.io.AnyReader) !CID {
+    pub fn read(allocator: std.mem.Allocator, reader: *std.io.Reader) !CID {
         const head = try Codec.read(reader);
 
         if (head == .@"sha2-256") {
@@ -46,7 +46,7 @@ pub const CID = struct {
             const hash = try allocator.alloc(u8, size);
             errdefer allocator.free(hash);
 
-            try reader.readNoEof(hash);
+            try reader.readSliceAll(hash);
             return .{ .code = head, .hash = hash };
         } else {
             // CIDv1
@@ -116,7 +116,7 @@ pub const CID = struct {
         };
     }
 
-    pub fn write(self: CID, writer: std.io.AnyWriter) !void {
+    pub fn write(self: CID, writer: *std.io.Writer) !void {
         switch (self.version) {
             .cidv0 => {
                 try self.digest.write(writer);
