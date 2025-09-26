@@ -116,7 +116,7 @@ pub const CID = struct {
         };
     }
 
-    pub fn write(self: CID, writer: *std.io.Writer) !void {
+    pub fn write(self: CID, writer: *std.io.Writer) std.io.Writer.Error!void {
         switch (self.version) {
             .cidv0 => {
                 try self.digest.write(writer);
@@ -146,8 +146,8 @@ pub const CID = struct {
                 bytes[0] = 1; // CID version
 
                 var i: usize = 1;
-                i += Codec.encode(bytes[i..], self.codec);
-                i += Codec.encode(bytes[i..], self.digest.code);
+                i += self.codec.encode(bytes[i..]);
+                i += self.digest.code.encode(bytes[i..]);
                 i += varint.encode(bytes[i..], self.digest.hash.len);
                 @memcpy(bytes[i .. i + digest_len], self.digest.hash);
 
@@ -157,7 +157,7 @@ pub const CID = struct {
     }
 
     /// Format a string for a CID
-    pub fn format(self: CID, writer: *std.io.Writer) !void {
+    pub fn format(self: CID, writer: *std.io.Writer) error{WriteFailed}!void {
         const base = switch (self.version) {
             .cidv0 => multibase.Code.base58btc,
             .cidv1 => multibase.Code.base32,
@@ -173,9 +173,9 @@ pub const CID = struct {
         return .{ .data = .{ .cid = self, .base = base } };
     }
 
-    fn formatBaseFn(data: FormatBaseData, writer: *std.io.Writer) !void {
+    fn formatBaseFn(data: FormatBaseData, writer: *std.io.Writer) std.io.Writer.Error!void {
         if (data.cid.version == .cidv0 and data.base != multibase.Code.base58btc) {
-            return error.INVALID_MULTIBASE;
+            return error.WriteFailed;
         }
 
         var w = std.io.Writer.fixed(&buffer);
@@ -184,7 +184,7 @@ pub const CID = struct {
     }
 
     /// Return a human-readable string Formatter for a CID
-    pub fn formatString(self: CID) std.fmt.Formatter(CID) {
+    pub fn formatString(self: CID) std.fmt.Alt(CID, formatStringFn) {
         return .{ .data = self };
     }
 

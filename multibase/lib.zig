@@ -5,20 +5,22 @@ pub const Code = @import("code.zig").Code;
 const rfc4648 = @import("rfc4648.zig");
 const baseX = @import("baseX.zig");
 
+const errors = @import("errors.zig");
+
 pub const Base = struct {
     code: Code,
     name: []const u8,
     impl: type,
 
-    pub fn writeAll(self: Base, writer: *std.io.Writer, bytes: []const u8) anyerror!void {
+    pub fn writeAll(self: Base, writer: *std.io.Writer, bytes: []const u8) std.io.Writer.Error!void {
         try self.impl.writeAll(writer, bytes);
     }
 
-    pub fn encode(self: Base, allocator: std.mem.Allocator, bytes: []const u8) anyerror![]const u8 {
+    pub fn encode(self: Base, allocator: std.mem.Allocator, bytes: []const u8) errors.EncodeError![]const u8 {
         return try self.impl.encode(allocator, bytes);
     }
 
-    pub fn baseEncode(self: Base, allocator: std.mem.Allocator, bytes: []const u8) anyerror![]const u8 {
+    pub fn baseEncode(self: Base, allocator: std.mem.Allocator, bytes: []const u8) errors.EncodeError![]const u8 {
         return try self.impl.baseEncode(allocator, bytes);
     }
 
@@ -126,7 +128,7 @@ pub fn encode(allocator: std.mem.Allocator, bytes: []const u8, code: Code) ![]co
     @panic("invalid multibase code");
 }
 
-pub fn writeAll(writer: *std.io.Writer, bytes: []const u8, code: Code, prefix: bool) !void {
+pub fn writeAll(writer: *std.io.Writer, bytes: []const u8, code: Code, prefix: bool) error{WriteFailed}!void {
     inline for (bases) |base| {
         if (base.code == code) {
             if (prefix) {

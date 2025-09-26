@@ -75,7 +75,7 @@ pub const Digest = struct {
         return bytes;
     }
 
-    pub fn write(self: Digest, writer: *std.io.Writer) !void {
+    pub fn write(self: Digest, writer: *std.io.Writer) std.io.Writer.Error!void {
         try self.code.write(writer);
         try varint.write(writer, self.hash.len);
         try writer.writeAll(self.hash);
@@ -93,7 +93,7 @@ pub const Digest = struct {
         return .{ .data = .{ .digest = self, .base = base, .prefix = prefix } };
     }
 
-    fn formatBaseFn(data: FormatBaseData, writer: *std.io.Writer) !void {
+    fn formatBaseFn(data: FormatBaseData, writer: *std.io.Writer) std.io.Writer.Error!void {
         var w = std.io.Writer.fixed(&buffer);
         try data.digest.write(&w);
         try multibase.writeAll(&writer, w.buffered(), data.base, data.prefix);

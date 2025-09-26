@@ -1,6 +1,8 @@
 const std = @import("std");
 const Code = @import("code.zig").Code;
 
+const errors = @import("errors.zig");
+
 fn getBaseMap(comptime alphabet: []const u8) [256]u8 {
     var base_map: [256]u8 = undefined;
     for (&base_map) |*byte| byte.* = 0xff;
@@ -30,9 +32,9 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8) type {
             return code;
         }
 
-        pub fn encode(allocator: std.mem.Allocator, bytes: []const u8) ![]const u8 {
+        pub fn encode(allocator: std.mem.Allocator, bytes: []const u8) errors.EncodeError![]const u8 {
             if (bytes.len > max_byte_len) {
-                return error.MAX_LENGTH;
+                return error.MaxLength;
             }
 
             var out = std.io.Writer.Allocating.init(allocator);
@@ -44,9 +46,9 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8) type {
             return try out.toOwnedSlice();
         }
 
-        pub fn baseEncode(allocator: std.mem.Allocator, bytes: []const u8) ![]const u8 {
+        pub fn baseEncode(allocator: std.mem.Allocator, bytes: []const u8) errors.EncodeError![]const u8 {
             if (bytes.len > max_byte_len) {
-                return error.MAX_LENGTH;
+                return error.MaxLength;
             }
 
             var out = std.io.Writer.Allocating.init(allocator);
@@ -57,7 +59,7 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8) type {
             return try out.toOwnedSlice();
         }
 
-        pub fn writeAll(writer: *std.io.Writer, bytes: []const u8) !void {
+        pub fn writeAll(writer: *std.io.Writer, bytes: []const u8) std.io.Writer.Error!void {
             if (bytes.len == 0) {
                 return;
             }
@@ -131,7 +133,7 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8) type {
             return .{ .data = bytes };
         }
 
-        fn formatFn(bytes: []const u8, writer: *std.io.Writer) !void {
+        fn formatFn(bytes: []const u8, writer: *std.io.Writer) std.io.Writer.Error!void {
             try writeAll(writer, bytes);
         }
 

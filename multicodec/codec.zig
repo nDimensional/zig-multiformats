@@ -614,11 +614,11 @@ pub const Codec = enum(u32) {
         return @enumFromInt(code);
     }
 
-    pub inline fn encode(codec: Codec, buf: []const u8) usize {
+    pub inline fn encode(codec: Codec, buf: []u8) usize {
         return varint.encode(buf, @intFromEnum(codec));
     }
 
-    pub inline fn write(codec: Codec, writer: *std.io.Writer) !void {
+    pub inline fn write(codec: Codec, writer: *std.io.Writer) std.io.Writer.Error!void {
         try varint.write(writer, @intFromEnum(codec));
     }
 };
