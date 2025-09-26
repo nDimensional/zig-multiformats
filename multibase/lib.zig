@@ -10,7 +10,7 @@ pub const Base = struct {
     name: []const u8,
     impl: type,
 
-    pub fn writeAll(self: Base, writer: std.io.AnyWriter, bytes: []const u8) anyerror!void {
+    pub fn writeAll(self: Base, writer: *std.io.Writer, bytes: []const u8) anyerror!void {
         try self.impl.writeAll(writer, bytes);
     }
 
@@ -30,7 +30,6 @@ pub const Base = struct {
         return try self.impl.baseDecode(allocator, str);
     }
 };
-
 
 fn initBase(comptime impl: type) Base {
     const code = impl.getCode();
@@ -110,7 +109,7 @@ pub fn decode(allocator: std.mem.Allocator, str: []const u8) !DecodeResult {
     inline for (bases) |base| {
         if (@intFromEnum(base.code) == prefix) {
             const data = try base.baseDecode(allocator, str[1..]);
-            return .{ .code = base.code, .data = data};
+            return .{ .code = base.code, .data = data };
         }
     }
 
@@ -127,7 +126,7 @@ pub fn encode(allocator: std.mem.Allocator, bytes: []const u8, code: Code) ![]co
     @panic("invalid multibase code");
 }
 
-pub fn writeAll(writer: std.io.AnyWriter, bytes: []const u8, code: Code, prefix: bool) !void {
+pub fn writeAll(writer: *std.io.Writer, bytes: []const u8, code: Code, prefix: bool) !void {
     inline for (bases) |base| {
         if (base.code == code) {
             if (prefix) {

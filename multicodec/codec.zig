@@ -591,16 +591,16 @@ pub const Codec = enum(u32) {
     _,
     // zig fmt: on
 
-    pub fn encodingLength(codec: Codec) usize {
+    pub inline fn encodingLength(codec: Codec) usize {
         return varint.encodingLength(@intCast(@intFromEnum(codec)));
     }
 
-    pub fn decode(buf: []const u8, len: ?*usize) !Codec {
+    pub inline fn decode(buf: []const u8, len: ?*usize) !Codec {
         const val = try varint.decode(buf, len);
         return try fromCode(val);
     }
 
-    pub fn read(reader: std.io.AnyReader) !Codec {
+    pub inline fn read(reader: *std.io.Reader) !Codec {
         const val = try varint.read(reader);
         return try fromCode(val);
     }
@@ -614,11 +614,11 @@ pub const Codec = enum(u32) {
         return @enumFromInt(code);
     }
 
-    pub fn encode(codec: Codec, buf: []const u8) usize {
+    pub inline fn encode(codec: Codec, buf: []const u8) usize {
         return varint.encode(buf, @intFromEnum(codec));
     }
 
-    pub fn write(codec: Codec, writer: std.io.AnyWriter) !void {
+    pub inline fn write(codec: Codec, writer: *std.io.Writer) !void {
         try varint.write(writer, @intFromEnum(codec));
     }
 };

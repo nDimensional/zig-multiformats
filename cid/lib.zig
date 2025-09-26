@@ -157,48 +157,44 @@ pub const CID = struct {
     }
 
     /// Format a string for a CID
-    pub fn format(self: CID, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
+    pub fn format(self: CID, writer: *std.io.Writer) !void {
         const base = switch (self.version) {
             .cidv0 => multibase.Code.base58btc,
             .cidv1 => multibase.Code.base32,
         };
 
-        try formatBaseImpl(.{ .cid = self, .base = base }, fmt, options, writer);
+        try formatBaseFn(.{ .cid = self, .base = base }, writer);
     }
 
+    const FormatBaseData = struct { cid: CID, base: multibase.Code };
+
     /// Return a multibase Formatter for a CID
-    pub fn formatBase(self: CID, base: multibase.Code) std.fmt.Formatter(formatBaseImpl) {
+    pub fn formatBase(self: CID, base: multibase.Code) std.fmt.Alt(FormatBaseData, formatBaseFn) {
         return .{ .data = .{ .cid = self, .base = base } };
     }
 
-    fn formatBaseImpl(data: struct { cid: CID, base: multibase.Code }, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
-        _ = fmt;
-        _ = options;
-
+    fn formatBaseFn(data: FormatBaseData, writer: *std.io.Writer) !void {
         if (data.cid.version == .cidv0 and data.base != multibase.Code.base58btc) {
             return error.INVALID_MULTIBASE;
         }
 
-        var stream = std.io.fixedBufferStream(&buffer);
-        try data.cid.write(stream.writer().any());
-        try multibase.writeAll(writer, buffer[0..stream.pos], data.base, data.cid.version == .cidv1);
+        var w = std.io.Writer.fixed(&buffer);
+        try data.cid.write(&w);
+        try multibase.writeAll(writer, w.buffered(), data.base, data.cid.version == .cidv1);
     }
 
     /// Return a human-readable string Formatter for a CID
-    pub fn formatString(self: CID) std.fmt.Formatter(formatStringImpl) {
+    pub fn formatString(self: CID) std.fmt.Formatter(CID) {
         return .{ .data = self };
     }
 
-    fn formatStringImpl(self: CID, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
-        _ = fmt;
-        _ = options;
-
+    fn formatStringFn(self: CID, writer: *std.io.Writer) !void {
         const base = switch (self.version) {
             .cidv0 => multibase.Code.base58btc,
             .cidv1 => multibase.Code.base32,
         };
 
-        try std.fmt.format(writer, "{s} - {s} - {s} - {any}", .{
+        try writer.print("{s} - {s} - {s} - {f}", .{
             @tagName(base),
             @tagName(self.version),
             @tagName(self.codec),

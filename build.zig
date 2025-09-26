@@ -1,6 +1,8 @@
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
 
     // Modules
 
@@ -40,24 +42,60 @@ pub fn build(b: *std.Build) void {
 
     // Tests
 
-    const varint_tests = b.addTest(.{ .root_source_file = b.path("varint/test.zig") });
-    varint_tests.root_module.addImport("varint", varint);
+    const varint_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+            .root_source_file = b.path("varint/test.zig"),
+            .imports = &.{
+                .{ .name = "varint", .module = varint },
+            },
+        }),
+    });
+
     const run_varint_tests = b.addRunArtifact(varint_tests);
     b.step("test-varint", "Run varint tests").dependOn(&run_varint_tests.step);
 
-    const multibase_tests = b.addTest(.{ .root_source_file = b.path("multibase/test.zig") });
-    multibase_tests.root_module.addImport("multibase", multibase);
+    const multibase_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+            .root_source_file = b.path("multibase/test.zig"),
+            .imports = &.{
+                .{ .name = "multibase", .module = multibase },
+            },
+        }),
+    });
+
     const run_multibase_tests = b.addRunArtifact(multibase_tests);
     b.step("test-multibase", "Run multibase tests").dependOn(&run_multibase_tests.step);
 
-    const multihash_tests = b.addTest(.{ .root_source_file = b.path("multihash/test.zig") });
-    multihash_tests.root_module.addImport("multihash", multihash);
+    const multihash_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+            .root_source_file = b.path("multihash/test.zig"),
+            .imports = &.{
+                .{ .name = "multihash", .module = multihash },
+            },
+        }),
+    });
+
     const run_multihash_tests = b.addRunArtifact(multihash_tests);
     b.step("test-multihash", "Run multihash tests").dependOn(&run_multihash_tests.step);
 
-    const cid_tests = b.addTest(.{ .root_source_file = b.path("cid/test.zig") });
-    cid_tests.root_module.addImport("cid", cid);
-    cid_tests.root_module.addImport("multicodec", multicodec);
+    const cid_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+            .root_source_file = b.path("cid/test.zig"),
+            .imports = &.{
+                .{ .name = "cid", .module = cid },
+                .{ .name = "multicodec", .module = multicodec },
+            },
+        }),
+    });
+
     const run_cid_tests = b.addRunArtifact(cid_tests);
     b.step("test-cid", "Run cid tests").dependOn(&run_cid_tests.step);
 

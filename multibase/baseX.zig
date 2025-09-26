@@ -35,12 +35,11 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8) type {
                 return error.MAX_LENGTH;
             }
 
-            var out = std.ArrayList(u8).init(allocator);
+            var out = std.io.Writer.Allocating.init(allocator);
             errdefer out.deinit();
 
-            var writer = out.writer();
-            try writer.writeByte(@intFromEnum(code));
-            try writeAll(writer.any(), bytes);
+            try out.writer.writeByte(@intFromEnum(code));
+            try writeAll(&out.writer, bytes);
 
             return try out.toOwnedSlice();
         }
@@ -50,20 +49,15 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8) type {
                 return error.MAX_LENGTH;
             }
 
-            var out = std.ArrayList(u8).init(allocator);
+            var out = std.io.Writer.Allocating.init(allocator);
             errdefer out.deinit();
 
-            var writer = out.writer();
-            try writeAll(writer.any(), bytes);
+            try writeAll(&out.writer, bytes);
 
             return try out.toOwnedSlice();
         }
 
-        pub fn writeAll(writer: std.io.AnyWriter, bytes: []const u8) !void {
-            try writeAllImpl(writer, bytes);
-        }
-
-        fn writeAllImpl(writer: anytype, bytes: []const u8) !void {
+        pub fn writeAll(writer: *std.io.Writer, bytes: []const u8) !void {
             if (bytes.len == 0) {
                 return;
             }
@@ -120,8 +114,7 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8) type {
             }
 
             // Translate the result into a string.
-            // const str = try allocator.alloc(u8, zeroes + (size - it2));
-            try writer.writeByteNTimes(leader, zeroes);
+            try writer.splatByteAll(leader, zeroes);
 
             for (0..(size - it2)) |_| {
                 if (it2 < b.len) {
@@ -134,31 +127,22 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8) type {
         }
 
         /// Return a Formatter for a []const u8
-        pub fn format(bytes: []const u8) std.fmt.Formatter(formatImpl) {
+        pub fn format(bytes: []const u8) std.fmt.Alt([]const u8, formatFn) {
             return .{ .data = bytes };
         }
 
-        fn formatImpl(
-            bytes: []const u8,
-            comptime fmt: []const u8,
-            options: std.fmt.FormatOptions,
-            writer: anytype,
-        ) !void {
-            _ = fmt;
-            _ = options;
-
-            try writeAllImpl(writer, bytes);
+        fn formatFn(bytes: []const u8, writer: *std.io.Writer) !void {
+            try writeAll(writer, bytes);
         }
 
-        pub fn decode(allocator: std.mem.Allocator, str: []const u8) ![]const u8 {
-            if (str.len < 1 or str[0] != @intFromEnum(code)) {
+        pub fn decode(allocator: std.mem.Allocator, str: []const u8) ![]u8 {
+            if (str.len < 1 or str[0] != @intFromEnum(code))
                 return error.INVALID_MULTIBASE_PREFIX;
-            }
 
-            return try baseDecode(allocator, str[@sizeOf(Code)..]);
+            return try baseDecode(allocator, str[1..]);
         }
 
-        pub fn baseDecode(allocator: std.mem.Allocator, str: []const u8) ![]const u8 {
+        pub fn baseDecode(allocator: std.mem.Allocator, str: []const u8) ![]u8 {
             var psz: usize = 0;
 
             var zeroes: usize = 0;

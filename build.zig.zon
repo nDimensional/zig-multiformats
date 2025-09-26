@@ -1,8 +1,8 @@
 .{
     .name = .multiformats,
     .fingerprint = 0x7bbdfdcdef4d1f96,
-    .version = "0.2.0",
-    .minimum_zig_version = "0.14.0",
+    .version = "0.3.0",
+    .minimum_zig_version = "0.15.1",
     .paths = .{
         "build.zig",
         "build.zig.zon",

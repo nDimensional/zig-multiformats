@@ -13,15 +13,15 @@ fn roundTripValue(val: u64) !void {
 }
 
 fn testWrite(val: u64) !void {
-    var stream = std.io.fixedBufferStream(&buf);
-    try varint.write(stream.writer().any(), val);
+    var writer = std.io.Writer.fixed(&buf);
+    try varint.write(&writer, val);
     try std.testing.expectEqual(val, try varint.decode(&buf, null));
 }
 
 fn testRead(val: u64) !void {
     _ = varint.encode(&buf, val);
-    var stream = std.io.fixedBufferStream(&buf);
-    try std.testing.expectEqual(val, try varint.read(stream.reader().any()));
+    var reader = std.io.Reader.fixed(&buf);
+    try std.testing.expectEqual(val, try varint.read(&reader));
 }
 
 test "encode and decode" {
