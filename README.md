@@ -18,7 +18,7 @@ Add to `build.zig.zon`:
 
 ```
 zig fetch --save=multiformats \
-  https://github.com/nDimensional/zig-multiformats/archive/refs/tags/v0.3.0.tar.gz
+  https://github.com/nDimensional/zig-multiformats/archive/refs/tags/v0.3.1.tar.gz
 ```
 
 Then in `build.zig`:
