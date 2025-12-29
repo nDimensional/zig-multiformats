@@ -13,14 +13,14 @@ fn roundTripValue(val: u64) !void {
 }
 
 fn testWrite(val: u64) !void {
-    var writer = std.io.Writer.fixed(&buf);
+    var writer = std.Io.Writer.fixed(&buf);
     try varint.write(&writer, val);
     try std.testing.expectEqual(val, try varint.decode(&buf, null));
 }
 
 fn testRead(val: u64) !void {
     _ = varint.encode(&buf, val);
-    var reader = std.io.Reader.fixed(&buf);
+    var reader = std.Io.Reader.fixed(&buf);
     try std.testing.expectEqual(val, try varint.read(&reader));
 }
 

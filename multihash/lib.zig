@@ -29,7 +29,7 @@ pub const Digest = struct {
     }
 
     /// read a binary multihash from a reader
-    pub fn read(allocator: std.mem.Allocator, reader: *std.io.Reader) !Digest {
+    pub fn read(allocator: std.mem.Allocator, reader: *std.Io.Reader) !Digest {
         const code = try Codec.read(reader);
         const size = try varint.read(reader);
 
@@ -75,14 +75,14 @@ pub const Digest = struct {
         return bytes;
     }
 
-    pub fn write(self: Digest, writer: *std.io.Writer) std.io.Writer.Error!void {
+    pub fn write(self: Digest, writer: *std.Io.Writer) std.Io.Writer.Error!void {
         try self.code.write(writer);
         try varint.write(writer, self.hash.len);
         try writer.writeAll(self.hash);
     }
 
     /// Format a human-readable {code}-{len}-{hex} string for a Digest
-    pub fn format(self: Digest, writer: *std.io.Writer) !void {
+    pub fn format(self: Digest, writer: *std.Io.Writer) !void {
         try writer.print("{s}-{d}-{x}", .{ @tagName(self.code), self.hash.len, self.hash });
     }
 
@@ -93,8 +93,8 @@ pub const Digest = struct {
         return .{ .data = .{ .digest = self, .base = base, .prefix = prefix } };
     }
 
-    fn formatBaseFn(data: FormatBaseData, writer: *std.io.Writer) std.io.Writer.Error!void {
-        var w = std.io.Writer.fixed(&buffer);
+    fn formatBaseFn(data: FormatBaseData, writer: *std.Io.Writer) std.Io.Writer.Error!void {
+        var w = std.Io.Writer.fixed(&buffer);
         try data.digest.write(&w);
         try multibase.writeAll(&writer, w.buffered(), data.base, data.prefix);
     }

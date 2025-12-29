@@ -42,7 +42,7 @@ pub fn encode(buf: []u8, val: u64) usize {
     @panic("internal error - exceeded max byte length");
 }
 
-pub fn write(writer: *std.io.Writer, val: u64) std.io.Writer.Error!void {
+pub fn write(writer: *std.Io.Writer, val: u64) std.Io.Writer.Error!void {
     var i: usize = 0;
     var v = val;
     while (i <= MAX_BYTE_LENGTH) : (i += 1) {
@@ -85,7 +85,7 @@ pub fn decode(buf: []const u8, len: ?*usize) !usize {
     return error.InvalidValue;
 }
 
-pub fn read(reader: *std.io.Reader) !u64 {
+pub fn read(reader: *std.Io.Reader) !u64 {
     var val: u64 = 0;
     var shift: u6 = 0;
     var i: u8 = 0;

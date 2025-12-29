@@ -33,7 +33,7 @@ pub const CID = struct {
     }
 
     /// read a binary CID from a reader
-    pub fn read(allocator: std.mem.Allocator, reader: *std.io.Reader) !CID {
+    pub fn read(allocator: std.mem.Allocator, reader: *std.Io.Reader) !CID {
         const head = try Codec.read(reader);
 
         if (head == .@"sha2-256") {
@@ -116,7 +116,7 @@ pub const CID = struct {
         };
     }
 
-    pub fn write(self: CID, writer: *std.io.Writer) std.io.Writer.Error!void {
+    pub fn write(self: CID, writer: *std.Io.Writer) std.Io.Writer.Error!void {
         switch (self.version) {
             .cidv0 => {
                 try self.digest.write(writer);
@@ -157,7 +157,7 @@ pub const CID = struct {
     }
 
     /// Format a string for a CID
-    pub fn format(self: CID, writer: *std.io.Writer) error{WriteFailed}!void {
+    pub fn format(self: CID, writer: *std.Io.Writer) error{WriteFailed}!void {
         const base = switch (self.version) {
             .cidv0 => multibase.Code.base58btc,
             .cidv1 => multibase.Code.base32,
@@ -173,12 +173,12 @@ pub const CID = struct {
         return .{ .data = .{ .cid = self, .base = base } };
     }
 
-    fn formatBaseFn(data: FormatBaseData, writer: *std.io.Writer) std.io.Writer.Error!void {
+    fn formatBaseFn(data: FormatBaseData, writer: *std.Io.Writer) std.Io.Writer.Error!void {
         if (data.cid.version == .cidv0 and data.base != multibase.Code.base58btc) {
             return error.WriteFailed;
         }
 
-        var w = std.io.Writer.fixed(&buffer);
+        var w = std.Io.Writer.fixed(&buffer);
         try data.cid.write(&w);
         try multibase.writeAll(writer, w.buffered(), data.base, data.cid.version == .cidv1);
     }
@@ -188,7 +188,7 @@ pub const CID = struct {
         return .{ .data = self };
     }
 
-    fn formatStringFn(self: CID, writer: *std.io.Writer) !void {
+    fn formatStringFn(self: CID, writer: *std.Io.Writer) !void {
         const base = switch (self.version) {
             .cidv0 => multibase.Code.base58btc,
             .cidv1 => multibase.Code.base32,

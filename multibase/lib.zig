@@ -12,7 +12,7 @@ pub const Base = struct {
     name: []const u8,
     impl: type,
 
-    pub fn writeAll(self: Base, writer: *std.io.Writer, bytes: []const u8) std.io.Writer.Error!void {
+    pub fn writeAll(self: Base, writer: *std.Io.Writer, bytes: []const u8) std.Io.Writer.Error!void {
         try self.impl.writeAll(writer, bytes);
     }
 
@@ -128,7 +128,7 @@ pub fn encode(allocator: std.mem.Allocator, bytes: []const u8, code: Code) ![]co
     @panic("invalid multibase code");
 }
 
-pub fn writeAll(writer: *std.io.Writer, bytes: []const u8, code: Code, prefix: bool) error{WriteFailed}!void {
+pub fn writeAll(writer: *std.Io.Writer, bytes: []const u8, code: Code, prefix: bool) error{WriteFailed}!void {
     inline for (bases) |base| {
         if (base.code == code) {
             if (prefix) {

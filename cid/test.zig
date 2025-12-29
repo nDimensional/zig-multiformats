@@ -70,7 +70,7 @@ test "CID.format" {
     var buffer: [1024]u8 = undefined;
 
     {
-        var writer = std.io.Writer.fixed(&buffer);
+        var writer = std.Io.Writer.fixed(&buffer);
         try writer.print("my CID: {f}", .{cid.formatBase(.base58btc)});
         try std.testing.expectEqualSlices(
             u8,
@@ -80,7 +80,7 @@ test "CID.format" {
     }
 
     {
-        var writer = std.io.Writer.fixed(&buffer);
+        var writer = std.Io.Writer.fixed(&buffer);
         try writer.print("my CID: {f}", .{cid.formatBase(.base32)});
         try std.testing.expectEqualSlices(
             u8,
@@ -90,7 +90,7 @@ test "CID.format" {
     }
 
     {
-        var writer = std.io.Writer.fixed(&buffer);
+        var writer = std.Io.Writer.fixed(&buffer);
         try writer.print("my CID: {f}", .{cid});
         try std.testing.expectEqualSlices(
             u8,
@@ -100,7 +100,7 @@ test "CID.format" {
     }
 
     {
-        var writer = std.io.Writer.fixed(&buffer);
+        var writer = std.Io.Writer.fixed(&buffer);
         try writer.print("my CID: {f}", .{cid.formatString()});
         try std.testing.expectEqualSlices(
             u8,

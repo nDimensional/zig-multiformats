@@ -600,7 +600,7 @@ pub const Codec = enum(u32) {
         return try fromCode(val);
     }
 
-    pub inline fn read(reader: *std.io.Reader) !Codec {
+    pub inline fn read(reader: *std.Io.Reader) !Codec {
         const val = try varint.read(reader);
         return try fromCode(val);
     }
@@ -618,7 +618,7 @@ pub const Codec = enum(u32) {
         return varint.encode(buf, @intFromEnum(codec));
     }
 
-    pub inline fn write(codec: Codec, writer: *std.io.Writer) std.io.Writer.Error!void {
+    pub inline fn write(codec: Codec, writer: *std.Io.Writer) std.Io.Writer.Error!void {
         try varint.write(writer, @intFromEnum(codec));
     }
 };

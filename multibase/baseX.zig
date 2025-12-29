@@ -37,7 +37,7 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8) type {
                 return error.MaxLength;
             }
 
-            var out = std.io.Writer.Allocating.init(allocator);
+            var out = std.Io.Writer.Allocating.init(allocator);
             errdefer out.deinit();
 
             try out.writer.writeByte(@intFromEnum(code));
@@ -51,7 +51,7 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8) type {
                 return error.MaxLength;
             }
 
-            var out = std.io.Writer.Allocating.init(allocator);
+            var out = std.Io.Writer.Allocating.init(allocator);
             errdefer out.deinit();
 
             try writeAll(&out.writer, bytes);
@@ -59,7 +59,7 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8) type {
             return try out.toOwnedSlice();
         }
 
-        pub fn writeAll(writer: *std.io.Writer, bytes: []const u8) std.io.Writer.Error!void {
+        pub fn writeAll(writer: *std.Io.Writer, bytes: []const u8) std.Io.Writer.Error!void {
             if (bytes.len == 0) {
                 return;
             }
@@ -133,7 +133,7 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8) type {
             return .{ .data = bytes };
         }
 
-        fn formatFn(bytes: []const u8, writer: *std.io.Writer) std.io.Writer.Error!void {
+        fn formatFn(bytes: []const u8, writer: *std.Io.Writer) std.Io.Writer.Error!void {
             try writeAll(writer, bytes);
         }
 

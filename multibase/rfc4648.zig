@@ -25,7 +25,7 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8, comptime bits_pe
         }
 
         pub fn encode(allocator: std.mem.Allocator, bytes: []const u8) errors.EncodeError![]const u8 {
-            var out = std.io.Writer.Allocating.init(allocator);
+            var out = std.Io.Writer.Allocating.init(allocator);
             errdefer out.deinit();
 
             try out.writer.writeByte(@intFromEnum(code));
@@ -35,7 +35,7 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8, comptime bits_pe
         }
 
         pub fn baseEncode(allocator: std.mem.Allocator, bytes: []const u8) errors.EncodeError![]const u8 {
-            var out = std.io.Writer.Allocating.init(allocator);
+            var out = std.Io.Writer.Allocating.init(allocator);
             errdefer out.deinit();
 
             try writeAll(&out.writer, bytes);
@@ -43,7 +43,7 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8, comptime bits_pe
             return try out.toOwnedSlice();
         }
 
-        pub fn writeAll(writer: *std.io.Writer, bytes: []const u8) std.io.Writer.Error!void {
+        pub fn writeAll(writer: *std.Io.Writer, bytes: []const u8) std.Io.Writer.Error!void {
             // try writeBytes(writer, bytes, alphabet, bits_per_char);
             const pad = alphabet[alphabet.len - 1] == PAD;
             const mask = (@as(u8, 1) << bits_per_char) - 1;
@@ -86,7 +86,7 @@ pub fn Base(comptime code: Code, comptime alphabet: []const u8, comptime bits_pe
             return .{ .data = bytes };
         }
 
-        fn formatFn(bytes: []const u8, writer: *std.io.Writer) std.io.Writer.Error!void {
+        fn formatFn(bytes: []const u8, writer: *std.Io.Writer) std.Io.Writer.Error!void {
             try writeAll(writer, bytes);
         }
 
