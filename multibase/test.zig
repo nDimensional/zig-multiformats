@@ -25,7 +25,7 @@ fn testEncode(base: multibase.Base, allocator: std.mem.Allocator, bytes: []const
 }
 
 test "base32 family" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    var gpa: std.heap.DebugAllocator(.{}) = .init;
     const allocator = gpa.allocator();
     defer std.debug.assert(gpa.deinit() == .ok);
 
@@ -154,7 +154,7 @@ fn testGeneric(allocator: std.mem.Allocator, code: multibase.Code, bytes: []cons
 }
 
 test "generic encode/decode" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    var gpa: std.heap.DebugAllocator(.{}) = .init;
     defer std.debug.assert(gpa.deinit() == .ok);
     const allocator = gpa.allocator();
 

@@ -3,7 +3,7 @@ const CID = @import("cid").CID;
 const Codec = @import("multicodec").Codec;
 
 test "CID.parse" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    var gpa: std.heap.DebugAllocator(.{}) = .init;
     defer std.debug.assert(gpa.deinit() == .ok);
 
     const allocator = gpa.allocator();
@@ -38,7 +38,7 @@ test "CID.parse" {
 }
 
 test "CID.encode / CID.decode" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    var gpa: std.heap.DebugAllocator(.{}) = .init;
     defer std.debug.assert(gpa.deinit() == .ok);
 
     const allocator = gpa.allocator();
@@ -56,7 +56,7 @@ test "CID.encode / CID.decode" {
 }
 
 test "CID.format" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    var gpa: std.heap.DebugAllocator(.{}) = .init;
     defer std.debug.assert(gpa.deinit() == .ok);
 
     const allocator = gpa.allocator();
